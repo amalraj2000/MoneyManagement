@@ -34,7 +34,9 @@ export interface AppSettings {
   theme: ThemePref;
   firstLaunchCompleted: boolean;
   /** User-added categories */
+  incomeCategories?: string[] | null;
   customIncomeCategories: string[];
+  expenseCategories?: string[] | null;
   customExpenseCategories: string[];
 }
 

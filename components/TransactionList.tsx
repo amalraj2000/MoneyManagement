@@ -1,7 +1,6 @@
 "use client";
 import { useMemo, useState } from "react";
 import { Pencil, Search, Trash2 } from "lucide-react";
-import { categoryStyle } from "./categoryStyle";
 import { Button, Card, Sheet, cx, inputCls } from "./ui";
 import { formatPaise } from "@/lib/finance/money";
 import { monthKey } from "@/lib/finance/calc";
@@ -64,17 +63,13 @@ export function TransactionList({
       ) : (
         <ul className="space-y-2">
           {filtered.slice(0, shown).map((t) => {
-            const { Icon, gradient } = categoryStyle(t.category);
             return (
             <li key={t.id}>
               <button onClick={() => setDetail(t)} className="flex min-h-16 w-full items-center gap-3 rounded-2xl bg-slate-50 p-3 text-left transition active:scale-[.99] dark:bg-slate-800/60">
-                <span className={cx("flex size-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br text-white shadow-sm", gradient)}>
-                  <Icon size={22} />
-                </span>
                 <span className="min-w-0 flex-1">
                   <span className="block truncate font-medium">{t.description}</span>
                   <span className="block truncate text-xs text-slate-500 dark:text-slate-400">
-                    {t.category} · {t.transactionDate}{t.transactionTime ? ` ${t.transactionTime}` : ""}{t.bankName || t.paymentMethod ? ` · ${t.bankName ?? t.paymentMethod}` : ""}
+                    {[t.description !== t.category && t.category, t.transactionDate, t.bankName ?? t.paymentMethod].filter(Boolean).join(" · ")}
                   </span>
                 </span>
                 <span className={cx("shrink-0 font-mono text-sm font-bold tabular-nums", t.type === "income" ? "text-emerald-600 dark:text-emerald-400" : "text-rose-600 dark:text-rose-400")}>

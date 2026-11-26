@@ -4,7 +4,7 @@ import { Button, Field, Sheet, inputCls } from "./ui";
 import { CategorySelect } from "./CategorySelect";
 import { parseRupeesToPaise, paiseToInput } from "@/lib/finance/money";
 import { todayISO } from "@/lib/finance/calc";
-import { isValidDate, isValidTime, sanitizeText } from "@/lib/validation/transaction";
+import { isValidDate, sanitizeText } from "@/lib/validation/transaction";
 import { PAYMENT_METHODS, type Transaction, type TransactionType } from "@/types";
 import type { NewTransaction } from "@/hooks/useStore";
 
@@ -31,9 +31,7 @@ function Inner({ type, editing, onClose, onSave, categories: cats, onAddCategory
   const e = editing;
   const [amount, setAmount] = useState(e ? paiseToInput(e.amountPaise) : "");
   const [category, setCategory] = useState(e?.category ?? cats[0]);
-  const [desc, setDesc] = useState(e?.description ?? "");
   const [date, setDate] = useState(e?.transactionDate ?? todayISO());
-  const [time, setTime] = useState(e?.transactionTime ?? "");
   const [method, setMethod] = useState(e?.paymentMethod ?? (type === "expense" ? "UPI" : "Bank transfer"));
   const [notes, setNotes] = useState(e?.notes ?? "");
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -46,8 +44,6 @@ function Inner({ type, editing, onClose, onSave, categories: cats, onAddCategory
     const paise = parseRupeesToPaise(amount);
     if (!paise || paise <= 0) errs.amount = "Enter a valid amount greater than 0 (max 2 decimals).";
     if (!isValidDate(date)) errs.date = "Enter a valid date.";
-    if (time && !isValidTime(time)) errs.time = "Enter a valid time.";
-    if (!desc.trim()) errs.desc = type === "income" ? "Enter the income source." : "Enter a description or merchant.";
     setErrors(errs);
     if (Object.keys(errs).length) return;
     setSaving(true);
@@ -57,10 +53,10 @@ function Inner({ type, editing, onClose, onSave, categories: cats, onAddCategory
           type,
           amountPaise: paise!,
           category,
-          description: sanitizeText(desc, 120),
-          merchant: type === "expense" ? sanitizeText(desc, 120) : null,
+          description: e && e.source !== "manual" ? e.description : category,
+          merchant: e?.merchant ?? null,
           transactionDate: date,
-          transactionTime: time || null,
+          transactionTime: e?.transactionTime ?? null,
           paymentMethod: method,
           source: e?.source ?? "manual",
           bankName: e?.bankName ?? null,
@@ -83,20 +79,12 @@ function Inner({ type, editing, onClose, onSave, categories: cats, onAddCategory
       <Field label="Amount (₹)" error={errors.amount}>
         <input className={inputCls} inputMode="decimal" autoFocus placeholder="0.00" value={amount} onChange={(x) => setAmount(x.target.value)} />
       </Field>
-      <Field label={type === "income" ? "Income source" : "Description / merchant"} error={errors.desc}>
-        <input className={inputCls} value={desc} maxLength={120} onChange={(x) => setDesc(x.target.value)} />
-      </Field>
       <Field label="Category">
         <CategorySelect value={category} categories={cats} onChange={setCategory} onAdd={onAddCategory} />
       </Field>
-      <div className="grid grid-cols-2 gap-3">
-        <Field label="Date" error={errors.date}>
+      <Field label="Date" error={errors.date}>
           <input type="date" className={inputCls} value={date} onChange={(x) => setDate(x.target.value)} />
         </Field>
-        <Field label="Time (optional)" error={errors.time}>
-          <input type="time" className={inputCls} value={time} onChange={(x) => setTime(x.target.value)} />
-        </Field>
-      </div>
       <Field label="Payment method">
         <select className={inputCls} value={method} onChange={(x) => setMethod(x.target.value)}>
           {[...new Set([...PAYMENT_METHODS, method])].map((c) => <option key={c}>{c}</option>)}

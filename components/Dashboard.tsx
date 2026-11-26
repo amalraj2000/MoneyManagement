@@ -6,9 +6,7 @@ import { Button, Collapsible, Field, Sheet, inputCls } from "./ui";
 import { TransactionForm } from "./TransactionForm";
 import { TransactionList } from "./TransactionList";
 import { Analytics } from "./Analytics";
-import { BudgetPanel } from "./BudgetPanel";
-import { SmsImport } from "./SmsImport";
-import { SettingsPanel } from "./SettingsPanel";
+import { CategoryManager } from "./CategoryManager";
 import { currentMonthKey, monthLabel, shiftMonth, summarizeMonth } from "@/lib/finance/calc";
 import { formatPaise, parseRupeesToPaise } from "@/lib/finance/money";
 import type { Transaction, TransactionType } from "@/types";
@@ -101,21 +99,15 @@ export function Dashboard() {
 
         <TransactionList transactions={store.transactions} month={month} onEdit={(t) => setForm({ type: t.type, editing: t })} onDelete={store.deleteTransaction} />
 
-        <Collapsible id="budget" title="Monthly budget">
-          <BudgetPanel key={JSON.stringify([settings.monthlyBudgetPaise, settings.monthlyIncomeTargetPaise, settings.savingsTargetPaise])} summary={summary} settings={settings} onSave={store.saveSettings} />
-        </Collapsible>
-
         <Collapsible id="analytics" title="Charts">
           <Analytics transactions={store.transactions} month={month} />
         </Collapsible>
 
-        <Collapsible id="sms" title={`Add from bank SMS${store.importRecords.some((r) => r.importStatus === "review") ? " • review pending" : ""}`}>
-          <SmsImport store={store} />
+        <Collapsible id="categories" title="Categories">
+          <CategoryManager store={store} />
         </Collapsible>
 
-        <Collapsible id="settings" title="Settings & backup">
-          <SettingsPanel store={store} />
-        </Collapsible>
+
       </main>
 
       <TransactionForm open={!!form} type={form?.type ?? "expense"} editing={form?.editing} onClose={() => setForm(null)} onSave={save} categories={store.categoriesFor(form?.type ?? "expense")} onAddCategory={(n) => store.addCategory(form?.type ?? "expense", n)} />
