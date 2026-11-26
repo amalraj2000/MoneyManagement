@@ -1,9 +1,10 @@
 import type { Metadata, Viewport } from "next";
-import { Geist } from "next/font/google";
+import { JetBrains_Mono, Plus_Jakarta_Sans } from "next/font/google";
 import { ServiceWorker } from "@/components/ServiceWorker";
 import "./globals.css";
 
-const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
+const sans = Plus_Jakarta_Sans({ variable: "--font-sans-app", subsets: ["latin"] });
+const mono = JetBrains_Mono({ variable: "--font-mono-app", subsets: ["latin"] });
 
 export const metadata: Metadata = {
   title: "MoneyManagement",
@@ -14,7 +15,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#059669",
+  themeColor: "#0b1537",
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover",
@@ -22,7 +23,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${geistSans.variable} h-full antialiased`} suppressHydrationWarning>
+    <html lang="en" className={`${sans.variable} ${mono.variable} h-full antialiased`} suppressHydrationWarning>
       <body className="min-h-full">
         {children}
         <ServiceWorker />

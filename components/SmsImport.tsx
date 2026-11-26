@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import { Button, Field, cx, inputCls } from "./ui";
+import { CategorySelect } from "./CategorySelect";
 import { parseBankSms, splitMessages } from "@/lib/sms-parser";
 import { duplicateKey, isDuplicate } from "@/lib/sms-parser/duplicate";
 import { formatPaise, paiseToInput, parseRupeesToPaise } from "@/lib/finance/money";
@@ -98,7 +99,7 @@ export function SmsImport({ store }: { store: Store }) {
   return (
     <div className="space-y-4">
       <p className="text-sm text-slate-600 dark:text-slate-400">
-        Paste bank SMS messages (separate with a blank line). Parsing happens on your device; messages are never uploaded. A browser app cannot read your SMS automatically.
+        Copy your bank SMS and paste it here. Nothing leaves your phone. (Apps can’t read SMS by themselves, so pasting is needed.)
       </p>
       <Field label="Bank SMS messages">
         <textarea className={inputCls} rows={4} value={text} onChange={(e) => setText(e.target.value)} placeholder="Your account has been debited by INR 450.00 at XYZ STORE on 26-Nov-2026." />
@@ -123,9 +124,7 @@ export function SmsImport({ store }: { store: Store }) {
                   <input aria-label="Date" type="date" className={inputCls} value={r.date} onChange={(e) => upd(r.id, { date: e.target.value })} />
                   <input aria-label="Time" type="time" className={inputCls} value={r.time} onChange={(e) => upd(r.id, { time: e.target.value })} />
                   <input aria-label="Merchant" className={cx(inputCls, "col-span-2")} placeholder="Merchant / sender" value={r.merchant} onChange={(e) => upd(r.id, { merchant: e.target.value })} />
-                  <select aria-label="Category" className={cx(inputCls, "col-span-2")} value={r.category} onChange={(e) => upd(r.id, { category: e.target.value })}>
-                    {(r.type === "income" ? INCOME_CATEGORIES : EXPENSE_CATEGORIES).map((c) => <option key={c}>{c}</option>)}
-                  </select>
+                  <CategorySelect className="col-span-2" value={r.category} categories={store.categoriesFor(r.type === "income" ? "income" : "expense")} onChange={(c) => upd(r.id, { category: c })} onAdd={(n) => store.addCategory(r.type === "income" ? "income" : "expense", n)} />
                 </div>
                 <label className="flex min-h-10 items-center gap-2">
                   <input type="checkbox" className="size-5" checked={r.include} onChange={(e) => upd(r.id, { include: e.target.checked })} />

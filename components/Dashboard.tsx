@@ -1,8 +1,8 @@
 "use client";
 import { useEffect, useMemo, useState } from "react";
-import { ChevronLeft, ChevronRight, Minus, Moon, Plus, Sun, Wallet } from "lucide-react";
+import { ArrowDownLeft, ArrowUpRight, ChevronLeft, ChevronRight, Minus, Moon, Plus, Sun, Wallet } from "lucide-react";
 import { useStore, type NewTransaction } from "@/hooks/useStore";
-import { Button, Card, Collapsible, Field, Sheet, inputCls } from "./ui";
+import { Button, Collapsible, Field, Sheet, inputCls } from "./ui";
 import { TransactionForm } from "./TransactionForm";
 import { TransactionList } from "./TransactionList";
 import { Analytics } from "./Analytics";
@@ -43,67 +43,84 @@ export function Dashboard() {
   if (store.loading) return <main className="grid min-h-dvh place-items-center text-slate-500">Loading…</main>;
 
   return (
-    <main className="mx-auto flex min-h-dvh max-w-2xl flex-col gap-4 px-4 pb-[calc(2rem+env(safe-area-inset-bottom))] pt-[calc(1rem+env(safe-area-inset-top))]">
-      <header className="flex items-center justify-between gap-2">
-        <div className="flex items-center gap-2">
-          <span className="flex size-9 items-center justify-center rounded-xl bg-emerald-600 text-white"><Wallet size={20} /></span>
-          <h1 className="text-lg font-bold">MoneyManagement</h1>
+    <div className="relative min-h-dvh">
+      <div aria-hidden className="absolute inset-x-0 top-0 h-60 bg-gradient-to-b from-[#0b1537] to-[#101c4a] dark:from-[#050a1e] dark:to-[#0a1233]" />
+      <main className="relative mx-auto flex min-h-dvh max-w-2xl flex-col gap-4 px-4 pb-[calc(2rem+env(safe-area-inset-bottom))] pt-[calc(1rem+env(safe-area-inset-top))]">
+        <header id="top" className="flex items-center justify-between gap-2 text-white">
+          <div className="flex items-center gap-3">
+            <span className="flex size-12 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-500 to-blue-800 ring-1 ring-white/20"><Wallet size={24} /></span>
+            <div>
+              <p className="text-[11px] font-medium uppercase tracking-widest text-white/60">Welcome</p>
+              <h1 className="text-xl font-bold leading-tight">MoneyManagement</h1>
+            </div>
+          </div>
+          <button
+            aria-label={dark ? "Switch to light mode" : "Switch to dark mode"}
+            className="flex size-12 items-center justify-center rounded-2xl bg-white/10 ring-1 ring-white/15 hover:bg-white/20"
+            onClick={() => store.saveSettings({ theme: dark ? "light" : "dark" })}
+          >
+            {dark ? <Sun size={20} /> : <Moon size={20} />}
+          </button>
+        </header>
+
+        {store.error && <p role="alert" className="rounded-xl bg-red-50 p-3 text-sm text-red-800">{store.error}</p>}
+
+        <section aria-label="Available balance" className="rounded-[2rem] bg-gradient-to-br from-blue-500 via-blue-600 to-blue-800 p-5 text-white shadow-xl shadow-blue-600/30 ring-1 ring-white/20">
+          <div className="flex items-start justify-between gap-2">
+            <div>
+              <p className="text-sm text-white/80">Money I have</p>
+              <p className="mt-1 font-mono text-4xl font-bold tabular-nums">{formatPaise(store.balancePaise)}</p>
+            </div>
+            <span className="rounded-full bg-white/20 px-3 py-1 text-xs font-medium">{month === currentMonthKey() ? "This month" : monthLabel(month)}</span>
+          </div>
+          <div className="mt-5 grid grid-cols-2 gap-3">
+            <div className="flex items-center gap-3 rounded-2xl bg-white/15 p-3">
+              <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-emerald-500"><ArrowDownLeft size={18} /></span>
+              <div className="min-w-0"><p className="text-xs text-white/80">Income</p><p className="truncate font-mono text-sm font-bold">{formatPaise(summary.incomePaise)}</p></div>
+            </div>
+            <div className="flex items-center gap-3 rounded-2xl bg-white/15 p-3">
+              <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-rose-500"><ArrowUpRight size={18} /></span>
+              <div className="min-w-0"><p className="text-xs text-white/80">Spent</p><p className="truncate font-mono text-sm font-bold">{formatPaise(summary.expensePaise)}</p></div>
+            </div>
+          </div>
+          <p className="mt-3 text-xs text-white/80">Saved this month: <span className="font-mono font-bold">{formatPaise(summary.savingsPaise)}</span></p>
+        </section>
+
+        <div className="flex items-center gap-3">
+          <div className="flex flex-1 items-center justify-between rounded-2xl bg-white px-1 shadow-sm ring-1 ring-slate-200 dark:bg-slate-900 dark:ring-slate-800">
+            <button aria-label="Previous month" className="flex size-12 items-center justify-center rounded-full" onClick={() => setMonth(shiftMonth(month, -1))}><ChevronLeft /></button>
+            <button className="font-bold" onClick={() => setMonth(currentMonthKey())} aria-label="Jump to current month">{monthLabel(month)}</button>
+            <button aria-label="Next month" className="flex size-12 items-center justify-center rounded-full" onClick={() => setMonth(shiftMonth(month, 1))}><ChevronRight /></button>
+          </div>
         </div>
-        <button
-          aria-label={dark ? "Switch to light mode" : "Switch to dark mode"}
-          className="flex size-11 items-center justify-center rounded-full hover:bg-slate-200 dark:hover:bg-slate-800"
-          onClick={() => store.saveSettings({ theme: dark ? "light" : "dark" })}
-        >
-          {dark ? <Sun size={20} /> : <Moon size={20} />}
-        </button>
-      </header>
 
-      {store.error && <p role="alert" className="rounded-xl bg-red-50 p-3 text-sm text-red-800">{store.error}</p>}
+        <div className="grid grid-cols-2 gap-3">
+          <Button variant="income" className="min-h-14 rounded-2xl text-base" onClick={() => setForm({ type: "income", editing: null })}><Plus size={20} />Add Income</Button>
+          <Button variant="expense" className="min-h-14 rounded-2xl text-base" onClick={() => setForm({ type: "expense", editing: null })}><Minus size={20} />Add Expense</Button>
+        </div>
 
-      <div className="flex items-center justify-between">
-        <button aria-label="Previous month" className="flex size-11 items-center justify-center rounded-full hover:bg-slate-200 dark:hover:bg-slate-800" onClick={() => setMonth(shiftMonth(month, -1))}><ChevronLeft /></button>
-        <button className="font-semibold" onClick={() => setMonth(currentMonthKey())} aria-label="Jump to current month">{monthLabel(month)}</button>
-        <button aria-label="Next month" className="flex size-11 items-center justify-center rounded-full hover:bg-slate-200 dark:hover:bg-slate-800" onClick={() => setMonth(shiftMonth(month, 1))}><ChevronRight /></button>
-      </div>
+        <TransactionList transactions={store.transactions} month={month} onEdit={(t) => setForm({ type: t.type, editing: t })} onDelete={store.deleteTransaction} />
 
-      <section aria-label="Available balance" className="rounded-3xl bg-gradient-to-br from-emerald-600 to-teal-700 p-5 text-white shadow-lg">
-        <p className="text-sm opacity-90">Available Balance</p>
-        <p className="mt-1 text-4xl font-bold tabular-nums">{formatPaise(store.balancePaise)}</p>
-        <p className="mt-1 text-xs opacity-80">Opening balance + all income − all expenses (not affected by month selection)</p>
-      </section>
+        <Collapsible id="budget" title="Monthly budget">
+          <BudgetPanel key={JSON.stringify([settings.monthlyBudgetPaise, settings.monthlyIncomeTargetPaise, settings.savingsTargetPaise])} summary={summary} settings={settings} onSave={store.saveSettings} />
+        </Collapsible>
 
-      <div className="grid grid-cols-3 gap-2">
-        <Card className="!p-3"><p className="text-xs text-slate-500">Income</p><p className="text-sm font-bold text-emerald-600 tabular-nums sm:text-base dark:text-emerald-400">{formatPaise(summary.incomePaise)}</p></Card>
-        <Card className="!p-3"><p className="text-xs text-slate-500">Spent</p><p className="text-sm font-bold text-rose-600 tabular-nums sm:text-base dark:text-rose-400">{formatPaise(summary.expensePaise)}</p></Card>
-        <Card className="!p-3"><p className="text-xs text-slate-500">Savings</p><p className={`text-sm font-bold tabular-nums sm:text-base ${summary.savingsPaise < 0 ? "text-rose-600" : ""}`}>{formatPaise(summary.savingsPaise)}</p></Card>
-      </div>
+        <Collapsible id="analytics" title="Charts">
+          <Analytics transactions={store.transactions} month={month} />
+        </Collapsible>
 
-      <div className="grid grid-cols-2 gap-3">
-        <Button variant="income" className="min-h-14 text-base" onClick={() => setForm({ type: "income", editing: null })}><Plus size={20} />Add Income</Button>
-        <Button variant="expense" className="min-h-14 text-base" onClick={() => setForm({ type: "expense", editing: null })}><Minus size={20} />Add Expense</Button>
-      </div>
+        <Collapsible id="sms" title={`Add from bank SMS${store.importRecords.some((r) => r.importStatus === "review") ? " • review pending" : ""}`}>
+          <SmsImport store={store} />
+        </Collapsible>
 
-      <Collapsible title="Monthly budget & savings" defaultOpen>
-        <BudgetPanel key={JSON.stringify([settings.monthlyBudgetPaise, settings.monthlyIncomeTargetPaise, settings.savingsTargetPaise])} summary={summary} settings={settings} onSave={store.saveSettings} />
-      </Collapsible>
+        <Collapsible id="settings" title="Settings & backup">
+          <SettingsPanel store={store} />
+        </Collapsible>
+      </main>
 
-      <Collapsible title="Analytics">
-        <Analytics transactions={store.transactions} month={month} />
-      </Collapsible>
-
-      <TransactionList transactions={store.transactions} month={month} onEdit={(t) => setForm({ type: t.type, editing: t })} onDelete={store.deleteTransaction} />
-
-      <Collapsible title={`Import bank SMS${store.importRecords.some((r) => r.importStatus === "review") ? " • review pending" : ""}`}>
-        <SmsImport store={store} />
-      </Collapsible>
-
-      <Collapsible title="Settings, backup & install">
-        <SettingsPanel store={store} />
-      </Collapsible>
-
-      <TransactionForm open={!!form} type={form?.type ?? "expense"} editing={form?.editing} onClose={() => setForm(null)} onSave={save} />
+      <TransactionForm open={!!form} type={form?.type ?? "expense"} editing={form?.editing} onClose={() => setForm(null)} onSave={save} categories={store.categoriesFor(form?.type ?? "expense")} onAddCategory={(n) => store.addCategory(form?.type ?? "expense", n)} />
       <Onboarding open={!settings.firstLaunchCompleted} onDone={(p) => store.saveSettings({ openingBalancePaise: p, firstLaunchCompleted: true })} />
-    </main>
+    </div>
   );
 }
 

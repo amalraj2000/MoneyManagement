@@ -1,10 +1,11 @@
 "use client";
 import { useState } from "react";
 import { Button, Field, Sheet, inputCls } from "./ui";
+import { CategorySelect } from "./CategorySelect";
 import { parseRupeesToPaise, paiseToInput } from "@/lib/finance/money";
 import { todayISO } from "@/lib/finance/calc";
 import { isValidDate, isValidTime, sanitizeText } from "@/lib/validation/transaction";
-import { EXPENSE_CATEGORIES, INCOME_CATEGORIES, PAYMENT_METHODS, type Transaction, type TransactionType } from "@/types";
+import { PAYMENT_METHODS, type Transaction, type TransactionType } from "@/types";
 import type { NewTransaction } from "@/hooks/useStore";
 
 interface Props {
@@ -13,6 +14,8 @@ interface Props {
   editing?: Transaction | null;
   onClose: () => void;
   onSave: (t: NewTransaction, editing?: Transaction | null) => Promise<void>;
+  categories: string[];
+  onAddCategory: (name: string) => Promise<string | null>;
 }
 
 export function TransactionForm(props: Props) {
@@ -24,8 +27,7 @@ export function TransactionForm(props: Props) {
   );
 }
 
-function Inner({ type, editing, onClose, onSave }: Props) {
-  const cats = type === "income" ? INCOME_CATEGORIES : EXPENSE_CATEGORIES;
+function Inner({ type, editing, onClose, onSave, categories: cats, onAddCategory }: Props) {
   const e = editing;
   const [amount, setAmount] = useState(e ? paiseToInput(e.amountPaise) : "");
   const [category, setCategory] = useState(e?.category ?? cats[0]);
@@ -85,9 +87,7 @@ function Inner({ type, editing, onClose, onSave }: Props) {
         <input className={inputCls} value={desc} maxLength={120} onChange={(x) => setDesc(x.target.value)} />
       </Field>
       <Field label="Category">
-        <select className={inputCls} value={category} onChange={(x) => setCategory(x.target.value)}>
-          {[...new Set([...cats, category])].map((c) => <option key={c}>{c}</option>)}
-        </select>
+        <CategorySelect value={category} categories={cats} onChange={setCategory} onAdd={onAddCategory} />
       </Field>
       <div className="grid grid-cols-2 gap-3">
         <Field label="Date" error={errors.date}>

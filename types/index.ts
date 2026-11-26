@@ -33,6 +33,9 @@ export interface AppSettings {
   currency: "INR";
   theme: ThemePref;
   firstLaunchCompleted: boolean;
+  /** User-added categories */
+  customIncomeCategories: string[];
+  customExpenseCategories: string[];
 }
 
 export type ImportStatus = "imported" | "duplicate" | "review" | "rejected";
@@ -70,8 +73,10 @@ export const DEFAULT_SETTINGS: AppSettings = {
   currency: "INR",
   theme: "system",
   firstLaunchCompleted: false,
+  customIncomeCategories: [],
+  customExpenseCategories: [],
 };
 
 export const INCOME_CATEGORIES = ["Salary", "Freelance", "Business", "Bank transfer", "Other income"];
-export const EXPENSE_CATEGORIES = ["Food", "Shopping", "Travel", "Bills", "Rent", "Subscriptions", "EMI", "Other expenses"];
+export const EXPENSE_CATEGORIES = ["Food", "Grocery", "Petrol", "Electricity", "Recharge", "Slice", "Bank loan", "Gadget EMI", "EMI", "Shopping", "Travel", "Bills", "Rent", "Subscriptions", "Other expenses"];
 export const PAYMENT_METHODS = ["Cash", "UPI", "Debit card", "Credit card", "Net banking", "Bank transfer", "Other"];

@@ -4,7 +4,7 @@ import { storage } from "@/lib/db/storage";
 import { buildBackup, parseBackup } from "@/lib/db/backup";
 import { calculateBalance, compareTx } from "@/lib/finance/calc";
 import { txDuplicateKey } from "@/lib/sms-parser/duplicate";
-import { DEFAULT_SETTINGS, type AppSettings, type ImportRecord, type Transaction } from "@/types";
+import { DEFAULT_SETTINGS, EXPENSE_CATEGORIES, INCOME_CATEGORIES, type AppSettings, type ImportRecord, type Transaction } from "@/types";
 
 export const newId = () =>
   typeof crypto !== "undefined" && crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random().toString(16).slice(2)}`;
@@ -93,6 +93,29 @@ export function useStore() {
     setImportRecords(data.importRecords);
   }, []);
 
+  const categoriesFor = useCallback(
+    (type: "income" | "expense") => {
+      const base = type === "income" ? INCOME_CATEGORIES : EXPENSE_CATEGORIES;
+      const custom = type === "income" ? settings.customIncomeCategories : settings.customExpenseCategories;
+      return [...new Set([...base, ...(custom ?? [])])];
+    },
+    [settings],
+  );
+
+  /** Adds a category (case-insensitive de-dupe) and returns the canonical name. */
+  const addCategory = useCallback(
+    async (type: "income" | "expense", raw: string) => {
+      const name = raw.trim().replace(/\s+/g, " ").slice(0, 40);
+      if (!name) return null;
+      const existing = categoriesFor(type).find((c) => c.toLowerCase() === name.toLowerCase());
+      if (existing) return existing;
+      const key = type === "income" ? "customIncomeCategories" : "customExpenseCategories";
+      await saveSettings({ [key]: [...(settings[key] ?? []), name] });
+      return name;
+    },
+    [categoriesFor, saveSettings, settings],
+  );
+
   const balancePaise = useMemo(() => calculateBalance(settings.openingBalancePaise, transactions), [settings, transactions]);
   const knownKeys = useMemo(
     () => [...transactions.map(txDuplicateKey), ...importRecords.filter((r) => r.importStatus === "imported").map((r) => r.duplicateKey)],
@@ -101,7 +124,7 @@ export function useStore() {
 
   return {
     loading, error, transactions, settings, importRecords, balancePaise, knownKeys,
-    addTransactions, updateTransaction, deleteTransaction, saveSettings,
+    categoriesFor, addCategory, addTransactions, updateTransaction, deleteTransaction, saveSettings,
     addImportRecords, removeImportRecord, clearAll, exportJson, importBackup,
   };
 }

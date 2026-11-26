@@ -8,14 +8,14 @@ export const inputCls =
   "w-full rounded-xl border border-slate-300 bg-white px-3 py-3 text-base text-slate-900 outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-600/30 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100";
 
 export function Card({ children, className }: { children: ReactNode; className?: string }) {
-  return <section className={cx("rounded-2xl bg-white p-4 shadow-sm ring-1 ring-slate-200 dark:bg-slate-900 dark:ring-slate-800", className)}>{children}</section>;
+  return <section className={cx("rounded-3xl bg-white p-4 shadow-sm ring-1 ring-slate-100 dark:bg-slate-900 dark:ring-slate-800", className)}>{children}</section>;
 }
 
 export function Button({
   variant = "primary", className, ...p
 }: React.ButtonHTMLAttributes<HTMLButtonElement> & { variant?: "primary" | "ghost" | "danger" | "income" | "expense" }) {
   const v = {
-    primary: "bg-slate-900 text-white hover:bg-slate-700 dark:bg-slate-100 dark:text-slate-900",
+    primary: "bg-blue-600 text-white hover:bg-blue-700",
     ghost: "bg-slate-100 text-slate-800 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-100 dark:hover:bg-slate-700",
     danger: "bg-red-600 text-white hover:bg-red-700",
     income: "bg-emerald-600 text-white hover:bg-emerald-700",
@@ -79,9 +79,9 @@ export function Progress({ percent, over, color = "bg-emerald-500" }: { percent:
   );
 }
 
-export function Collapsible({ title, children, defaultOpen = false }: { title: string; children: ReactNode; defaultOpen?: boolean }) {
+export function Collapsible({ id, title, children, defaultOpen = false }: { id?: string; title: string; children: ReactNode; defaultOpen?: boolean }) {
   return (
-    <details open={defaultOpen} className="group rounded-2xl bg-white shadow-sm ring-1 ring-slate-200 dark:bg-slate-900 dark:ring-slate-800">
+    <details id={id} open={defaultOpen} className="group scroll-mt-4 rounded-3xl bg-white shadow-sm ring-1 ring-slate-100 dark:bg-slate-900 dark:ring-slate-800">
       <summary className="flex min-h-12 cursor-pointer list-none items-center justify-between px-4 font-semibold">
         {title}
         <span className="text-slate-400 transition group-open:rotate-180">⌄</span>

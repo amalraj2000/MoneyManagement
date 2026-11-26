@@ -1,6 +1,7 @@
 "use client";
 import { useMemo, useState } from "react";
-import { ArrowDownLeft, ArrowUpRight, Pencil, Search, Trash2 } from "lucide-react";
+import { Pencil, Search, Trash2 } from "lucide-react";
+import { categoryStyle } from "./categoryStyle";
 import { Button, Card, Sheet, cx, inputCls } from "./ui";
 import { formatPaise } from "@/lib/finance/money";
 import { monthKey } from "@/lib/finance/calc";
@@ -35,12 +36,13 @@ export function TransactionList({
 
   return (
     <Card>
-      <h2 className="mb-3 text-lg font-bold">Transactions</h2>
+      <h2 className="mb-3 text-lg font-bold">Recent Transactions</h2>
       <div className="relative mb-2">
         <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-        <input aria-label="Search transactions" className={cx(inputCls, "pl-10")} placeholder="Search…" value={q} onChange={(e) => { setQ(e.target.value); setShown(PAGE); }} />
+        <input aria-label="Search transactions" className={cx(inputCls, "pl-10")} placeholder="Search transactions" value={q} onChange={(e) => { setQ(e.target.value); setShown(PAGE); }} />
       </div>
-      <div className="mb-3 grid grid-cols-2 gap-2">
+      <details className="mb-3"><summary className="cursor-pointer text-sm font-medium text-blue-600">Filters &amp; sort</summary>
+      <div className="mt-2 grid grid-cols-2 gap-2">
         <select aria-label="Filter by type" className={inputCls} value={type} onChange={(e) => setType(e.target.value as typeof type)}>
           <option value="all">All types</option><option value="income">Income</option><option value="expense">Expense</option>
         </select>
@@ -55,16 +57,19 @@ export function TransactionList({
           <option value="new">Newest first</option><option value="old">Oldest first</option>
         </select>
       </div>
+      </details>
 
       {filtered.length === 0 ? (
         <p className="py-8 text-center text-sm text-slate-500">No transactions found. Add income or an expense to get started.</p>
       ) : (
-        <ul className="divide-y divide-slate-100 dark:divide-slate-800">
-          {filtered.slice(0, shown).map((t) => (
+        <ul className="space-y-2">
+          {filtered.slice(0, shown).map((t) => {
+            const { Icon, gradient } = categoryStyle(t.category);
+            return (
             <li key={t.id}>
-              <button onClick={() => setDetail(t)} className="flex min-h-14 w-full items-center gap-3 py-2 text-left">
-                <span className={cx("flex size-10 shrink-0 items-center justify-center rounded-full", t.type === "income" ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-400" : "bg-rose-100 text-rose-700 dark:bg-rose-950 dark:text-rose-400")}>
-                  {t.type === "income" ? <ArrowDownLeft size={18} /> : <ArrowUpRight size={18} />}
+              <button onClick={() => setDetail(t)} className="flex min-h-16 w-full items-center gap-3 rounded-2xl bg-slate-50 p-3 text-left transition active:scale-[.99] dark:bg-slate-800/60">
+                <span className={cx("flex size-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br text-white shadow-sm", gradient)}>
+                  <Icon size={22} />
                 </span>
                 <span className="min-w-0 flex-1">
                   <span className="block truncate font-medium">{t.description}</span>
@@ -72,12 +77,13 @@ export function TransactionList({
                     {t.category} · {t.transactionDate}{t.transactionTime ? ` ${t.transactionTime}` : ""}{t.bankName || t.paymentMethod ? ` · ${t.bankName ?? t.paymentMethod}` : ""}
                   </span>
                 </span>
-                <span className={cx("shrink-0 font-semibold tabular-nums", t.type === "income" ? "text-emerald-600 dark:text-emerald-400" : "text-rose-600 dark:text-rose-400")}>
+                <span className={cx("shrink-0 font-mono text-sm font-bold tabular-nums", t.type === "income" ? "text-emerald-600 dark:text-emerald-400" : "text-rose-600 dark:text-rose-400")}>
                   {t.type === "income" ? "+" : "−"}{formatPaise(t.amountPaise)}
                 </span>
               </button>
             </li>
-          ))}
+            );
+          })}
         </ul>
       )}
       {filtered.length > shown && <Button variant="ghost" className="mt-3 w-full" onClick={() => setShown((n) => n + PAGE)}>Load more ({filtered.length - shown} left)</Button>}
